@@ -12,18 +12,18 @@ require 'tempfile'
 require 'pathname'
 
 Dir.chdir(File.dirname(ENV["TM_FILEPATH"]))
-GnuplotMate.run</string>
+GnuplotMate.display</string>
 	<key>input</key>
 	<string>document</string>
 	<key>keyEquivalent</key>
-	<string>@R</string>
+	<string>@d</string>
 	<key>name</key>
-	<string>Run</string>
+	<string>Display</string>
 	<key>output</key>
 	<string>showAsTooltip</string>
 	<key>scope</key>
 	<string>source.gnuplot</string>
 	<key>uuid</key>
-	<string>5A3DBE06-7304-4B10-84C9-5D392E42971A</string>
+	<string>11A5F53B-458D-4FE6-B5A1-1A40A048A379</string>
 </dict>
 </plist>
