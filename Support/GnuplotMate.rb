@@ -88,10 +88,11 @@ class GnuplotMate
       output = line.scan((/^\s*set output\W+['"](.*)['"]/))
       if output.length == 1
         string = output[0].join
-        self.outputFiles << File.basename(string,File.extname(string))
+        self.outputFiles << string #File.basename(string,File.extname(string))
         self.outputFilesLines << no+1
       end
       }
+
       
     # Display the Output according the terminal
     
@@ -102,6 +103,10 @@ class GnuplotMate
       self.displayLua
     when "aqua"
       # Do nothing because aqua will allready be displayed
+    when "pdf"
+      self.openOutputFileInPreview
+    when "png"
+      self.openOutputFileInPreview
     else
       puts "Error: No Supported Terminal"  
     end
@@ -129,6 +134,7 @@ class GnuplotMate
      
      # Convert eps to pdf
      self.outputFiles.each do |f|
+       f = File.basename(f,File.extname(f))
        puts %x{bash /usr/texbin/epstopdf #{f}.eps}
      end
      
@@ -148,11 +154,12 @@ class GnuplotMate
       self.outputFiles.each do |f|
         path = Pathname.pwd
         path = path.relative_path_from(Pathname.new(ENV["TM_PROJECT_DIRECTORY"]))
-        path = File.join(path,"#{f}")
+        fileName = File.basename(f,File.extname(f))
+        path = File.join(path,"#{fileName}")
         
-        gnuplottex = File.read(File.expand_path("#{f}.tex"))
+        gnuplottex = File.read(File.expand_path("#{f}"))
         gnuplottex = gnuplottex.gsub(/\\includegraphics\{(.*)\b/,'\includegraphics{' +  path )
-          File.open(File.expand_path("#{f}.tex"), 'w') {|f| f.write(gnuplottex) }  
+          File.open(File.expand_path("#{f}"), 'w') {|f| f.write(gnuplottex) }  
         end
       end
     
@@ -182,6 +189,7 @@ class GnuplotMate
      latex.puts '\begin{document}'
      latex.puts '\pagestyle{empty}'
      self.outputFiles.each do |f|
+       f = File.basename(f,File.extname(f))
        latex.puts "\\include{#{f}} \\newpage" 
      end
      latex.puts '\end{document}'
@@ -208,7 +216,6 @@ class GnuplotMate
          
      # Open the PDFFile in Skim
      pdfFileName = File.expand_path("Plot_#{self.gpname}.pdf")
-     puts pdfFileName
      `osascript &>/dev/null \
      -e 'set theFile to POSIX file "#{pdfFileName}" ' \
      -e 'tell application "Skim"' \
@@ -221,5 +228,23 @@ class GnuplotMate
 
   end
 
+  def openOutputFileInPreview
+    fileList = Array.new()
+    self.outputFiles.each do |f|
+      fileList << File.expand_path("#{f}")
+    end
+    fileString = '"' + fileList.join('","') + '"'
+    `osascript &>/dev/null \
+     -e 'set theFileList to {#{fileString}} ' \
+     -e 'set thePosixFileList to {}' \
+     -e 'repeat with currentFile in theFileList' \
+     -e 'set currentPosixFile to POSIX file currentFile' \
+     -e 'copy currentPosixFile to the end of thePosixFileList' \
+     -e 'end repeat' \
+     -e 'tell application "Preview"' \
+     -e 'activate' \
+     -e 'open thePosixFileList' \
+     -e 'end tell' &`
+  end
 
 end
