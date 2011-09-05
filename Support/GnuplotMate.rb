@@ -67,7 +67,7 @@ class GnuplotMate
   
   
   def displayOutput
-    
+        
     # Determine the Terminal
     terminal = self.script.scan(/^\W*set terminal (\w*)/)
     if terminal.empty?
@@ -178,6 +178,8 @@ class GnuplotMate
   end
   
   def runLatexOnTempFile(packages,previewEnv)
+    
+     userHeader = self.script.match(/#!TEXHEADER=(.*)$/)[1]
      
      latex = Tempfile.new("Plot_#{self.gpname}.tex")
      latex.puts '\documentclass[fontsize=11pt]{scrartcl}'
@@ -186,6 +188,7 @@ class GnuplotMate
      latex.puts "\\PreviewEnvironment{#{previewEnv}}"
      latex.puts '\setlength\PreviewBorder{2mm}'
      latex.puts File.read(self.texHeader)
+     latex.puts userHeader
      latex.puts '\begin{document}'
      latex.puts '\pagestyle{empty}'
      self.outputFiles.each do |f|
