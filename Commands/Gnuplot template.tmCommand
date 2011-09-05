@@ -6,14 +6,14 @@
 	<string>nop</string>
 	<key>command</key>
 	<string>#!/usr/bin/env ruby
-$: &amp;lt;&amp;lt; ENV["TM_SUPPORT_PATH"]+"/lib"
+$: &lt;&lt; ENV["TM_SUPPORT_PATH"]+"/lib"
 require "ui.rb"
 require 'date'
 if (!ENV["TM_FILENAME"] || ENV["TM_FILENAME"] == "")
 	# We hebben geen bestandsnaam, die moeten we dus vragen
 	plotname = TextMate::UI.request_string(
-		:title =&amp;gt; "Filename",
-		:prompt =&amp;gt; "Please enter the name of the new plot:"
+		:title =&gt; "Filename",
+		:prompt =&gt; "Please enter the name of the new plot:"
 	)
 else
 	plotname = ENV["TM_FILENAME"].gsub(".gp","")
@@ -36,7 +36,7 @@ else
 end
   
 
-puts &amp;lt;&amp;lt;IETS
+puts &lt;&lt; IETS
 ########################################################
 #
 #  #{plotname}
@@ -57,14 +57,14 @@ reset
 #  Size
 #  - 16cm,10cm    A4-Page normal FigSize
 #  - 13.5cm,7.9cm PowerPoint-Presentation Size 11/16
-set terminal lua tikz color size 16cm,10cm 
+set terminal lua tikz color size 16cm,10cm
 #  posible Options
 #  - monochrome
 #  - solid
-#  - scale &amp;lt;x&amp;gt;,&amp;lt;y&amp;gt;
-#  - font "&amp;lt;fontdesc&amp;gt;"
-#  - preamble "&amp;lt;preamble_string&amp;gt;"
-#  - providevars &amp;lt;var name&amp;gt;,...
+#  - scale &lt;x&gt;,&lt;y&gt;
+#  - font "&lt;fontdesc&gt;"
+#  - preamble "&lt;preamble_string&gt;"
+#  - providevars &lt;var name&gt;,...
 
 
 
@@ -88,7 +88,7 @@ load '~/Library/texmf/gnuplot/cdtudcolors.gp'
 ########################################################
 load '~/Library/texmf/gnuplot/stdlayout.gp'
 
-# set format "$%g$" # Zahlenformat see &amp;lt;help format specifiers&amp;gt;
+# set format "$%g$" # Zahlenformat see &lt;help format specifiers&gt;
 
 # Margins
 set lmargin 7
@@ -127,7 +127,7 @@ plot #{plotfunction} with lines lc rgb COLOR1
 # 4: gepunktet Linie		5: Quadardt
 # 6: Punkt-Strich Linie		7: Kreis
 #							9: Dreieck 
-</string>
+IETS</string>
 	<key>input</key>
 	<string>selection</string>
 	<key>name</key>
