@@ -51,7 +51,23 @@ If you like to add more packages you have tow options
 1. Add the packages with latex code to the file 'BUNDLEPATH/Support/texHeader.tex'
 2. Define it directly in the gnuplot script with #!TEXHEADER=\usepackage{example}
 
+The Gnuplot-Outputs are than add to one latex-document and compiled. The name of the resulting pdf-document is 'Plot_[filename].pdf'. Where [filename] is the filename of the executed gnuplot script.
 
+In the case of the epslatex terminal and if the gnuplot script is located in an textmate project the path of the included pdf-document in the output tex-file is changed to the realtive path to the project tree, which is really help full if you using gnuplot in an large latex project with several subfolders. So you can avoid the use of \graphicspath or similar workarounds
+
+
+## What is still to do
+
+If you like this fork and if you have have some improvements please send me a pull request. Following points i will be nice to be implemented
+
+* Cleaning Command for the current gnuplot file and all gnuplot files in the project
+* More supported Terminals
+* Display the page in preview for pdf and png terminal according to the current edited output (Courser position in gnuplot file)
+
+
+## Thanks
+
+* [Matt Foster](https://github.com/mattfoster)
 
 
 
