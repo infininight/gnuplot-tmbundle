@@ -16,22 +16,121 @@ if (!ENV["TM_FILENAME"] || ENV["TM_FILENAME"] == "")
 		:prompt =&gt; "Please enter the name of the new plot:"
 	)
 else
-	plotname = ENV["TM_FILENAME"].gsub(".plt","")
+	plotname = ENV["TM_FILENAME"].gsub(".gp","")
 end
 
+
+
+project_placeholder = '${1:«project»}'
+plotfunction = '${0:sin(x)}'
+
+
+tm_project_dir	= ENV['TM_PROJECT_DIRECTORY']	|| ''
+copyright_holder	= ENV['TM_ORGANIZATION_NAME']
+
+project = case tm_project_dir
+when /.*\/(.*)/
+	project = Regexp.last_match(1)
+else
+	project_placeholder
+end
+  
+
 puts &lt;&lt;IETS
+########################################################
 #
 #  #{plotname}
-#  
-#  Created by #{me=`whoami`; `finger "#{me.strip}" | sed -n 's/.*Name: \\(.*\\)/\\1/p'`.strip} on #{Date.today}.
+#  #{project}
 #
-set term postscript eps enhanced color font "Garamond" 16
-set size 0.7,0.7
-set output '#{plotname}.eps'
+#  Created by #{me=`whoami`; `finger "#{me.strip}" | sed -n 's/.*Name: \\(.*\\)/\\1/p'`.strip} on #{Date.today}.
+#  Copyright #{`date +%Y`.chomp} #{copyright_holder}. All rights reserved.
+#  
+########################################################
 
-${1:plot '#{plotname}.dat' u 1}$0
+reset
 
-unset output
+
+########################################################
+#  Terminal
+########################################################
+#
+#  Size
+#  - 16cm,10cm    A4-Page normal FigSize
+#  - 13.5cm,7.9cm PowerPoint-Presentation Size 11/16
+set terminal lua tikz color size 16cm,10cm 
+#  posible Options
+#  - monochrome
+#  - solid
+#  - scale &lt;x&gt;,&lt;y&gt;
+#  - font "&lt;fontdesc&gt;"
+#  - preamble "&lt;preamble_string&gt;"
+#  - providevars &lt;var name&gt;,...
+
+
+
+########################################################
+#  Farben
+########################################################
+load '~/Library/texmf/gnuplot/cdtudcolors.gp'
+
+# Standardfarben
+
+# GRIDCOLOR = HKS41_100 # "#000000"
+# TEXTCOLOR = HKS41_100 # "#000000"
+# COLOR1 = HKS44_100
+# COLOR2 = HKS33_100
+# COLOR3 = HKS65_100
+# COLORX = HKS07_100
+
+
+########################################################
+#  Layout
+########################################################
+load '~/Library/texmf/gnuplot/stdlayout.gp'
+
+# set format "$%g$" # Zahlenformat see &lt;help format specifiers&gt;
+
+# Margins
+set lmargin 7
+# set rmargin 6
+# set bmargin 4
+# set tmargin 4
+
+
+# SPILTAXES
+# set label SPILTAXES at graph 0,0.07 center rotate by 20 textcolor rgb TEXTCOLOR front offset -0.1,0
+
+
+
+########################################################
+#  Plot
+########################################################
+set output '#{plotname}.tex'
+
+set xlabel 'x'
+set label 100 'y'
+
+# set key width -1
+
+#set xrange [0:0]
+#set xtics 0,0,0
+#set yrange [0:0]
+#set ytics 0,0,0
+
+plot #{plotfunction} with lines lc rgb COLOR1
+
+
+# Folgende Linen Formatierungen sind möglich
+# Linetype					Pointtype
+# 1: Linie					0: Punkt
+# 3: gestrichelte Linie		2: Kreuz
+# 4: gepunktet Linie		5: Quadardt
+# 6: Punkt-Strich Linie		7: Kreis
+#							9: Dreieck 
+
+
+
+
 IETS</string>
 	<key>input</key>
 	<string>selection</string>

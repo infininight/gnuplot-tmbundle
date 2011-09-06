@@ -7,12 +7,16 @@
 	<key>command</key>
 	<string>#!/usr/bin/env ruby
 require ENV["TM_BUNDLE_SUPPORT"] + "/GnuplotMate"
+require 'ftools'
+require 'tempfile'
+require 'pathname'
 
+Dir.chdir(File.dirname(ENV["TM_FILEPATH"]))
 GnuplotMate.run</string>
 	<key>input</key>
 	<string>document</string>
 	<key>keyEquivalent</key>
-	<string>@r</string>
+	<string>@R</string>
 	<key>name</key>
 	<string>Run</string>
 	<key>output</key>

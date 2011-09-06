@@ -5,21 +5,25 @@
 	<key>beforeRunningCommand</key>
 	<string>nop</string>
 	<key>command</key>
-	<string>#!/bin/sh
+	<string>#!/usr/bin/env ruby
+require ENV["TM_BUNDLE_SUPPORT"] + "/GnuplotMate"
+require 'ftools'
+require 'tempfile'
+require 'pathname'
 
-cd "`dirname $TM_FILEPATH`"
-rake -f "$TM_BUNDLE_SUPPORT/Gnuplot.rake"</string>
+Dir.chdir(File.dirname(ENV["TM_FILEPATH"]))
+GnuplotMate.display</string>
 	<key>input</key>
-	<string>none</string>
+	<string>document</string>
 	<key>keyEquivalent</key>
-	<string>@R</string>
+	<string>@d</string>
 	<key>name</key>
-	<string>Generate Plots</string>
+	<string>Display</string>
 	<key>output</key>
 	<string>showAsTooltip</string>
 	<key>scope</key>
 	<string>source.gnuplot</string>
 	<key>uuid</key>
-	<string>48FDAAD9-61E8-4020-B600-430D66060696</string>
+	<string>11A5F53B-458D-4FE6-B5A1-1A40A048A379</string>
 </dict>
 </plist>

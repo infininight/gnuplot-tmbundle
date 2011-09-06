@@ -1,56 +1,79 @@
-# The Gnuplot TextMate bundle
+# What is this fork?
 
-See this [screencast](http://www.vimeo.com/2181877) for quick installation instrucitons.
+This is a fork of mattfosters Gnuplot TextMate Bundle (and I am Tobias Heß). I really love Gnuplot for my Latex files, but with the old bundle it was sometimes hard to get the right layout down because the output is shown in aqua-term and not in the choosen terminal. When i'm working on a gnuplot script i like to see the output as the terminal declares. So in this fork the gnuplot script will be executed and the outputs will be shown depending on the terminal in preview or skim.
 
-## Introduction
+Too install it and execute following in the console:
+
+	$ cd ~/Library/Application Support/TextMate/Bundles
+	$ git clone git@github.com:hesstobi/gnuplot.tmbundle.git
+
+
+## Features form the mattfosters Gnuplot TextMate Bundle
 
 Aims to provide a useful set of commands, snippets and language support for
 writing and running gnuplot scripts within [TextMate](http://macromates.com/).
 
 So far, various features have been implemented, including:
 
-  * Syntax hilighting.
-  * Script execution -- pressing ' ⌘R' pipes the script through gnuplot.
-  * Plot in aquaterm -- pressing also ''⌘R' gives you the option of viewing the plot in aquaterm.
-    * Execution and display -- we now have a command for running a script and showing the result in aquaterm.
-  * Output viewing -- pressing '⇧⌘O' will search though the script and open any filenames it finds after `set output` statements. 
-  * Output the current file to a PDF file and specify the file name in the plot file
+  * Syntax highlighting.
   * Toggling (un)set -- pressing '⇧⌘S' changes toggles between `set` and `unset` keywords on the current line.
   * Online help -- pressing '⌃H' with the caret over a keyword pops up an HTML window containing gnuplot's built-in help for that keyword.
 
-There are a cople of issus with the help, see the end of the `fillstyle` entry, for example, but these are minor, and seem to be due to bugs in bluecloth.
 
-Future work will be focused on providing completion, and improving the help
-command -- especially formatting of the output.
+## What is new
 
-## Links
+The way like the outputs are display changed completely. The bundle decided how the output is displayed according to the used terminal in the gunplot script. So for running script and displaying the output only following commands are necessary:
 
-  *  [Home page](http://github.com/mattfoster/gnuplot-tmbundle/)
-  * [Google Group](http://groups.google.com/group/gnuplot-tmundle)
+* Script execution -- pressing '⇧⌘R' pipes the script through gnuplot.
+* Output viewing -- pressing '⇧⌘O' displays the output depending on the terminal in preview or skim.   
+Following terminals are supported:
+	* aquaterm
+	* epslatex and lua tikz  
+	Every output gets complied by latex and display in a single pdf document in skim.
+	* pdf and png  
+	All outputs will be displayed in preview
+* Script execution and Output viewing -- pressing ''⌘R' pipes the script through gnuplot and display the output depending on the terminal in preview or skim.   
 
-## Installation:
 
-Run:
+### More information to the epslatex and lua tikz handling
 
-`cd ~/Library/Application\ Support/TextMate/Bundles`
+In default the epslatex and lua tikz outputs are compiled by latex only with the necessary packages for the terminals. For epslatex it is:
 
-`git clone git://github.com/mattfoster/gnuplot-tmbundle.git Gnuplot.tmbundle`
+* graphicx
+* xcolor
 
-## Saving the Output of a script to a PDF file
+and for lua tikz it is:
 
-You can specify a file name directly in the script and use ⌘R to execute the script. From the options choose save to PDF. To
-specify a name in the script put the following line in the beginning of you document:
+* gnuplot-lua-tikz
 
-    #!OUTPUT=this_is_my_file.pdf
-        
-The script will parse for this option and save the generated PDF to your directory. If you choose not
-to specify a name, the name of the current document will be used.
+If you like to add more packages you have tow options
 
-## Maintainer 
+1. Add the packages with latex code to the file 'BUNDLEPATH/Support/texHeader.tex'
+2. Define it directly in the gnuplot script with #!TEXHEADER=\usepackage{example}
 
-[Matt Foster](mailto:matt.p.foster@gmail.com) : [homepage](http://my-mili.eu/matt)
+The Gnuplot-Outputs are than add to one latex-document and compiled. The name of the resulting pdf-document is 'Plot_[filename].pdf'. Where [filename] is the filename of the executed gnuplot script.
 
-## Thanks:
+In the case of the epslatex terminal and if the gnuplot script is located in an textmate project the path of the included pdf-document in the output tex-file is changed to the realtive path to the project tree, which is really help full if you using gnuplot in an large latex project with several subfolders. So you can avoid the use of \graphicspath or similar workarounds
 
-Some functionality merged in from [gnuplot-textmate-bundle](http://github.com/pieter/gnuplot-textmate-bundle/tree/master "pieter's gnuplot-textmate-bundle at master &mdash; GitHub") on GitHub.
+
+## What is still to do
+
+If you like this fork and if you have have some improvements please send me a pull request. Following points i will be nice to be implemented
+
+* Cleaning Command for the current gnuplot file and all gnuplot files in the project
+* More supported Terminals
+* Display the page in preview for pdf and png terminal according to the current edited output (Courser position in gnuplot file)
+
+
+## Thanks
+
+* [Matt Foster](https://github.com/mattfoster)
+
+
+
+
+
+
+
+
 
