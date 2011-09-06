@@ -36,7 +36,7 @@ else
 end
   
 
-puts &lt;&lt; IETS
+puts &lt;&lt;IETS
 ########################################################
 #
 #  #{plotname}
@@ -57,7 +57,7 @@ reset
 #  Size
 #  - 16cm,10cm    A4-Page normal FigSize
 #  - 13.5cm,7.9cm PowerPoint-Presentation Size 11/16
-set terminal lua tikz color size 16cm,10cm
+set terminal lua tikz color size 16cm,10cm 
 #  posible Options
 #  - monochrome
 #  - solid
@@ -127,6 +127,10 @@ plot #{plotfunction} with lines lc rgb COLOR1
 # 4: gepunktet Linie		5: Quadardt
 # 6: Punkt-Strich Linie		7: Kreis
 #							9: Dreieck 
+
+
+
+
 IETS</string>
 	<key>input</key>
 	<string>selection</string>
