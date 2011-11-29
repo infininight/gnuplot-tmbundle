@@ -179,7 +179,8 @@ class GnuplotMate
   
   def runLatexOnTempFile(packages,previewEnv)
     
-     userHeader = self.script.match(/#!TEXHEADER=(.*)$/)[1]
+     #userHeader = self.script.match(/#!TEXHEADER=(.*)$/)[1]
+     userHeader = ''
      
      latex = Tempfile.new("Plot_#{self.gpname}.tex")
      latex.puts '\documentclass[fontsize=11pt]{scrartcl}'
