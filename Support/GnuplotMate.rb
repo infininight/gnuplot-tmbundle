@@ -69,16 +69,21 @@ class GnuplotMate
   def displayOutput
         
     # Determine the Terminal
-    terminal = self.script.scan(/^\W*set terminal (\w*)/)
-    if terminal.empty?
+    terminalLine = self.script.scan(/^\s*set terminal (\w*)\W?(\w*)/)
+    if terminalLine.empty?
       puts "Error: No terminal in script found"
       return
     end
-    if terminal.length > 1
+    if terminalLine.length > 1
       puts "Error: More than one terminal setting in script found"
       return
     end
-    terminal = terminal[0][0]
+    
+    terminal = terminalLine[0][0]
+    terminalOption = terminalLine[0][1]
+    
+        
+
     
     # Find Outputfiles and Line numbers
     self.outputFiles = Array.new
@@ -98,15 +103,30 @@ class GnuplotMate
     
     case terminal
     when "epslatex"
-      self.displayEpslatex
+      self.displayEpslatex(true)
     when "lua"
-      self.displayLua
+      if terminalOption == "tikz"
+        self.displayLua
+      else
+        puts "Error:Lua terminal needs tikz option"
+        return
+      end
     when "aqua"
       # Do nothing because aqua will allready be displayed
-    when "pdf"
+    when "pdf","pdfcairo"
       self.openOutputFileInPreview
-    when "png"
+    when "png","pngcairo"
       self.openOutputFileInPreview
+    when "cairolatex"
+      case terminalOption
+      when "eps"
+        self.displayEpslatex(true)
+      when "pdf"
+        self.displayEpslatex(false)
+      else
+        puts "Error:cairolatex terminal needs eps or pdf option"
+        return
+      end
     else
       puts "Error: No Supported Terminal"  
     end
@@ -129,13 +149,14 @@ class GnuplotMate
    
   end
 
-  def displayEpslatex
+  def displayEpslatex(isEps)
     
-     
-     # Convert eps to pdf
-     self.outputFiles.each do |f|
-       f = File.basename(f,File.extname(f))
-       puts %x{bash /usr/texbin/epstopdf #{f}.eps}
+     if isEps
+       # Convert eps to pdf
+       self.outputFiles.each do |f|
+         f = File.basename(f,File.extname(f))
+         puts %x{bash /usr/texbin/epstopdf #{f}.eps}
+       end
      end
      
      #Define Terminal Dependent Package String and Envirorment  
@@ -166,7 +187,7 @@ class GnuplotMate
     
     
   end
-
+  
 
   def run_plot_in_aquaterm(data)
     # Delete term lines, change output lines to "term aqua" in order to show plots in Aquaterm

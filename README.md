@@ -28,16 +28,16 @@ The way like the outputs are display changed completely. The bundle decided how 
 * Output viewing -- pressing '⇧⌘O' displays the output depending on the terminal in preview or skim.   
 Following terminals are supported:
 	* aquaterm
-	* epslatex and lua tikz  
+	* epslatex, lua tikz, cairolatex  
 	Every output gets complied by latex and display in a single pdf document in skim.
-	* pdf and png  
+	* pdf, png, pdfcario, pngcairo  
 	All outputs will be displayed in preview
 * Script execution and Output viewing -- pressing ''⌘R' pipes the script through gnuplot and display the output depending on the terminal in preview or skim.   
 
 
-### More information to the epslatex and lua tikz handling
+### More information to the epslatex, cairolatex and lua tikz handling
 
-In default the epslatex and lua tikz outputs are compiled by latex only with the necessary packages for the terminals. For epslatex it is:
+In default the epslatex and lua tikz outputs are compiled by latex only with the necessary packages for the terminals. For epslatex and cairolatex it is:
 
 * graphicx
 * xcolor
@@ -49,7 +49,7 @@ and for lua tikz it is:
 If you like to add more packages you have tow options
 
 1. Add the packages with latex code to the file 'BUNDLEPATH/Support/texHeader.tex'
-2. Define it directly in the gnuplot script with #!TEXHEADER=\usepackage{example}
+2. Define it directly in the gnuplot script with #!TEXHEADER=\usepackage{example}  -> Currently not working
 
 The Gnuplot-Outputs are than add to one latex-document and compiled. The name of the resulting pdf-document is 'Plot_[filename].pdf'. Where [filename] is the filename of the executed gnuplot script.
 
@@ -63,6 +63,7 @@ If you like this fork and if you have have some improvements please send me a pu
 * Cleaning Command for the current gnuplot file and all gnuplot files in the project
 * More supported Terminals
 * Display the page in preview for pdf and png terminal according to the current edited output (Courser position in gnuplot file)
+* Some nice Templates
 
 
 ## Thanks
