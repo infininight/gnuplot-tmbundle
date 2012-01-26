@@ -57,14 +57,17 @@ reset
 #  Size
 #  - 16cm,10cm    A4-Page normal FigSize
 #  - 13.5cm,7.9cm PowerPoint-Presentation Size 11/16
-set terminal lua tikz color size 16cm,10cm 
-#  posible Options
-#  - monochrome
-#  - solid
-#  - scale &lt;x&gt;,&lt;y&gt;
-#  - font "&lt;fontdesc&gt;"
-#  - preamble "&lt;preamble_string&gt;"
-#  - providevars &lt;var name&gt;,...
+set terminal cairolatex pdf color dashed size 16cm,10cm 
+#  posible Options:
+#     {eps | pdf}
+#     {standalone | input}
+#     {blacktext | colortext | colourtext}
+#     {header &lt;header&gt; | noheader}
+#     {mono|color} {solid|dashed}
+#     {{no}transparent} {{no}crop} {background &lt;rgbcolor&gt;}
+#     {font &lt;font&gt;} {fontscale &lt;scale&gt;}
+#     {linewidth &lt;lw&gt;} {rounded|butt} {dashlength &lt;dl&gt;}
+#     {size &lt;XX&gt;{unit},&lt;YY&gt;{unit}}
 
 
 
@@ -123,10 +126,11 @@ plot #{plotfunction} with lines lc rgb COLOR1
 # Folgende Linen Formatierungen sind möglich
 # Linetype					Pointtype
 # 1: Linie					0: Punkt
-# 3: gestrichelte Linie		2: Kreuz
-# 4: gepunktet Linie		5: Quadardt
-# 6: Punkt-Strich Linie		7: Kreis
-#							9: Dreieck 
+# 2: gestrichelte Linie		1: Kreuz
+# 3: gepunktet Linie		5: Quadardt
+# 4: Punkt-Strich Linie		7: Kreis
+# 5: Punkt-Punkt-Strich		9: Dreieck
+#  						   13: Raute
 
 
 
