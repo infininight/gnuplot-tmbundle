@@ -69,7 +69,7 @@ class GnuplotMate
   def displayOutput
         
     # Determine the Terminal
-    terminalLine = self.script.scan(/^\s*set terminal (\w*)\W?(\w*)/)
+    terminalLine = self.script.scan(/^\s*set term\w* (\w*)\W?(\w*)/)
     if terminalLine.empty?
       puts "Error: No terminal in script found"
       return
@@ -89,6 +89,7 @@ class GnuplotMate
     self.outputFiles = Array.new
     self.outputFilesLines = Array.new
 
+    # Find Outputs
     script.each_with_index{|line,no| 
       output = line.scan((/^\s*set output\W+['"](.*)['"]/))
       if output.length == 1
@@ -97,6 +98,15 @@ class GnuplotMate
         self.outputFilesLines << no+1
       end
       }
+    
+    # Also look in the output.list
+    if File.file?("output.list")
+      File.readlines("output.list").each do |line|
+        self.outputFiles << line
+        self.outputFilesLines << 1
+      end
+    end
+       
 
       
     # Display the Output according the terminal
