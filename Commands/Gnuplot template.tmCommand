@@ -57,14 +57,17 @@ reset
 #  Size
 #  - 16cm,10cm    A4-Page normal FigSize
 #  - 13.5cm,7.9cm PowerPoint-Presentation Size 11/16
-set terminal lua tikz color size 16cm,10cm 
-#  posible Options
-#  - monochrome
-#  - solid
-#  - scale &lt;x&gt;,&lt;y&gt;
-#  - font "&lt;fontdesc&gt;"
-#  - preamble "&lt;preamble_string&gt;"
-#  - providevars &lt;var name&gt;,...
+set terminal cairolatex pdf color dashed size 16cm,10cm 
+#  posible Options:
+#     {eps | pdf}
+#     {standalone | input}
+#     {blacktext | colortext | colourtext}
+#     {header &lt;header&gt; | noheader}
+#     {mono|color} {solid|dashed}
+#     {{no}transparent} {{no}crop} {background &lt;rgbcolor&gt;}
+#     {font &lt;font&gt;} {fontscale &lt;scale&gt;}
+#     {linewidth &lt;lw&gt;} {rounded|butt} {dashlength &lt;dl&gt;}
+#     {size &lt;XX&gt;{unit},&lt;YY&gt;{unit}}
 
 
 
@@ -77,10 +80,16 @@ load '~/Library/texmf/gnuplot/cdtudcolors.gp'
 
 # GRIDCOLOR = HKS41_100 # "#000000"
 # TEXTCOLOR = HKS41_100 # "#000000"
-# COLOR1 = HKS44_100
-# COLOR2 = HKS33_100
-# COLOR3 = HKS65_100
-# COLORX = HKS07_100
+
+########################################################
+#  Line Types
+########################################################
+
+# Set Linewidth and Pointsize
+LINEWIDTH = 3
+POINTSIZE = 0.5
+
+load '~/Library/texmf/gnuplot/linetypes.gp'
 
 
 ########################################################
@@ -88,61 +97,61 @@ load '~/Library/texmf/gnuplot/cdtudcolors.gp'
 ########################################################
 load '~/Library/texmf/gnuplot/stdlayout.gp'
 
-# set format "$%g$" # Zahlenformat see &lt;help format specifiers&gt;
+# Number format see &lt;help format specifiers&gt;
+
+# set format "\\num{%g}"   # Default with siunitx 
+# set format "\\num{%.2f}" # Fixed point notation
+# set format "\\SI{%P}{\\pi}" # Multible of pi
 
 # Margins
+
 set lmargin 7
 # set rmargin 6
 # set bmargin 4
 # set tmargin 4
 
 
+########################################################
+#  Labels
+########################################################
+
+set xlabel labelWithArrow('desc','symb','unit')
+set label 100 labelWithArrow('desc','symb','unit')
+
+
 # SPILTAXES
 # set label SPILTAXES at graph 0,0.07 center rotate by 20 textcolor rgb TEXTCOLOR front offset -0.1,0
 
-
+# set key width -1
 
 ########################################################
 #  Plot
 ########################################################
 set output '#{plotname}.tex'
 
-set xlabel 'x'
-set label 100 'y'
-
-# set key width -1
-
-#set xrange [0:0]
-#set xtics 0,0,0
-#set yrange [0:0]
-#set ytics 0,0,0
-
-plot #{plotfunction} with lines lc rgb COLOR1
-
-
-# Folgende Linen Formatierungen sind möglich
-# Linetype					Pointtype
-# 1: Linie					0: Punkt
-# 3: gestrichelte Linie		2: Kreuz
-# 4: gepunktet Linie		5: Quadardt
-# 6: Punkt-Strich Linie		7: Kreis
-#							9: Dreieck 
-
-
+plot #{plotfunction} with lines
 
 
 IETS</string>
 	<key>input</key>
 	<string>selection</string>
+	<key>inputFormat</key>
+	<string>text</string>
 	<key>name</key>
 	<string>Gnuplot template</string>
-	<key>output</key>
-	<string>insertAsSnippet</string>
+	<key>outputCaret</key>
+	<string>afterOutput</string>
+	<key>outputFormat</key>
+	<string>snippet</string>
+	<key>outputLocation</key>
+	<string>replaceInput</string>
 	<key>scope</key>
 	<string>source.gnuplot</string>
 	<key>tabTrigger</key>
 	<string>plt</string>
 	<key>uuid</key>
 	<string>13D0F1C4-078F-4E31-B629-6DB4FF0A6BD8</string>
+	<key>version</key>
+	<integer>2</integer>
 </dict>
 </plist>

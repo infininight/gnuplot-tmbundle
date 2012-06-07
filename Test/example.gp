@@ -1,4 +1,4 @@
-set terminal aqua 
+set terminal cairolatex pdf
 set key off
 
 set title "Gnuplot bundle test" # Comment test

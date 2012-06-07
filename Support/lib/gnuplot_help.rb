@@ -14,7 +14,8 @@ module Gnuplot
     end
     
     # Run gnuplot, and get the output
-    gnuplot = ENV['TM_GNUPLOT'] || 'gnuplot'
+    possible_paths = [ENV["TM_GNUPLOT"], `which gnuplot`, "/opt/local/bin/gnuplot", "/sw/bin/gnuplot", "/usr/local/bin/gnuplot"]
+    gnuplot = possible_paths.select { |x| x && File.exist?(x) }.first
     help << `export PAGER=cat; echo help #{word} | #{gnuplot} 2>&1`
 
     # Exit if there was an errror running gnuplot:
