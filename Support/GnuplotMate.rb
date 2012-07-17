@@ -74,17 +74,23 @@ class GnuplotMate
       puts "Error: No terminal in script found"
       return
     end
-    if terminalLine.length > 1
-      puts "Error: More than one terminal setting in script found"
-      return
-    end
+    
     
     terminal = terminalLine[0][0]
     terminalOption = terminalLine[0][1]
     
-        
-
+    if terminalLine.length > 1
     
+        terminalLine.each do |line|
+           
+            if !terminal.eql?(line[0])
+               puts "Error: Different terminal settings in script found"
+               return 
+           end
+        end
+    end
+
+
     # Find Outputfiles and Line numbers
     self.outputFiles = Array.new
     self.outputFilesLines = Array.new
