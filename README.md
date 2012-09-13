@@ -45,7 +45,6 @@ Currently only the TextMate build in completion is working...here is some work t
 
 To quickly test if the gnuplot is correctly installed, you can use the 'test' snippet. Just type `test⇥`, to get some test code. Then run it with `⌘R`. 
 
-
 # Notes
 
 For best/any results, you'll need TextMate to be able to see a `gnuplot` binary. 
