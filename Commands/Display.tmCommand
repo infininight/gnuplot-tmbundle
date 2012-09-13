@@ -7,23 +7,27 @@
 	<key>command</key>
 	<string>#!/usr/bin/env ruby
 require ENV["TM_BUNDLE_SUPPORT"] + "/GnuplotMate"
-require 'ftools'
-require 'tempfile'
-require 'pathname'
-
 Dir.chdir(File.dirname(ENV["TM_FILEPATH"]))
 GnuplotMate.display</string>
 	<key>input</key>
 	<string>document</string>
+	<key>inputFormat</key>
+	<string>text</string>
 	<key>keyEquivalent</key>
 	<string>@d</string>
 	<key>name</key>
 	<string>Display</string>
-	<key>output</key>
-	<string>showAsTooltip</string>
+	<key>outputCaret</key>
+	<string>afterOutput</string>
+	<key>outputFormat</key>
+	<string>text</string>
+	<key>outputLocation</key>
+	<string>toolTip</string>
 	<key>scope</key>
 	<string>source.gnuplot</string>
 	<key>uuid</key>
 	<string>11A5F53B-458D-4FE6-B5A1-1A40A048A379</string>
+	<key>version</key>
+	<integer>2</integer>
 </dict>
 </plist>
