@@ -2,6 +2,9 @@ require 'open3'
 require 'tempfile'
 require 'pathname'
 require ENV['TM_SUPPORT_PATH'] + '/lib/textmate'  
+
+Terminal = Struct.new(:name,:option,:line)
+OutputFile = Struct.new(:base,:ext,:path,:line)
   
 class GnuplotMateError < StandardError
   # Properties 
@@ -16,13 +19,23 @@ class GnuplotMateError < StandardError
   end  
     
   def self.gnuplotScriptError(gnuplotError)
-    
+
     lineNumber = gnuplotError[/line (\d*)/,1].to_i
     lineColumn = gnuplotError.lines.to_a[2].index('^')
     file = gnuplotError[/\"(.*.gp)\"/,1]
     message = gnuplotError[/line .\d*:\s*(.*)/,1]    
     GnuplotMateError.new(message,lineNumber,lineColumn,file,"Gnuplot")
     
+  end
+  
+  
+  def self.internalError(message,lineNumber)
+    GnuplotMateError.new(message,lineNumber,0,ENV['TM_FILEPATH'],"Gnuplot Bundle") 
+  end
+  
+  def self.epstopdfError(epstopdfError,lineNumber)
+    message = epstopdfError[/!!! Error:\s*(.*)/,1]
+    GnuplotMateError.new(message,lineNumber,11,ENV['TM_FILEPATH'],"epstopdf") 
   end
   
   def showInTextmate
@@ -37,7 +50,7 @@ end
 
 class GnuplotMate
   # Properties 
-  attr_accessor :script, :outputFiles, :outputFilesLines, :texHeader, :gpname, :userHeader, :gpFile
+  attr_accessor :script, :outputFiles, :texHeader, :gpname, :userHeader, :gpFile
    
   # Comandos
   def gnuplot
@@ -47,6 +60,11 @@ class GnuplotMate
   
   def pdflatex
     possible_paths = [ENV["TM_PDFLATEX"], `which pdflatex`, "/usr/texbin/pdflatex"]
+    possible_paths.select { |x| x && File.exist?(x) }.first
+  end
+  
+  def epstopdf
+    possible_paths = [ENV["TM_EPSTOPDF"], `which epstopdf`, "/usr/texbin/epstopdf"]
     possible_paths.select { |x| x && File.exist?(x) }.first
   end
     
@@ -120,84 +138,77 @@ end
    
 def displayOutput
         
-  # Determine the Terminal
-  terminalLine = self.script.scan(/^\s*set term\w* (\w*)\W?(\w*)/)
-  if terminalLine.empty?
-    puts "Error: No terminal in script found"
-    return
-  end
-    
-    
-  terminal = terminalLine[0][0]
-  terminalOption = terminalLine[0][1]
-    
-  if terminalLine.length > 1
-    
-    terminalLine.each do |line|
-           
-      if !terminal.eql?(line[0])
-        puts "Error: Different terminal settings in script found"
-        return 
-      end
-    end
-  end
-
-
-  # Find Outputfiles and Line numbers
-  self.outputFiles = Array.new
-  self.outputFilesLines = Array.new
-
-  # Find Outputs
-  self.script.each_line.with_index{|line,no| 
-    output = line.scan((/^\s*set output\W+['"](.*)['"]/))
-    if output.length == 1
-      string = output[0].join
-      self.outputFiles << string #File.basename(string,File.extname(string))
-      self.outputFilesLines << no+1
-    end
-  }
-    
-  # Also look in the output.list
-  if File.file?("output.list")
-    File.readlines("output.list").each do |line|
-      self.outputFiles << line
-      self.outputFilesLines << 1
-    end
-  end
+  # Scan the script for termial and outputs
        
-  # Detect User Headers
-  self.userHeader = self.script.scan(/TEXHEADER:(.*)/).to_s
+  terminals = Hash.new
+  self.outputFiles = Array.new
+  
+  self.script.each_line.with_index {|line,no|
+    # Find Terminal
+    line.scan(/\A\s*set term\w+\W+(\w+)\s+(\w+)/) { |x,y|
+      terminals[x] = Terminal.new(x,y,no+1);
+    }
+    # Find Output
+    line.scan(/\A\s*set output\W+['"](.*)['"]/) { |x|
+      ext = File.extname(x[0])
+      base = File.basename(x[0],ext)
+      path = File.expand_path(x[0]) 
+      self.outputFiles << OutputFile.new(base,ext,path,no)
+    }   
+  }
+
+  
+  # Also look in the output.list for outputs
+  if File.file?("output.list")
+    File.readlines("output.list").each {|line|
+      ext = File.extname(line)
+      base = File.basename(line,ext)
+      path = File.expand_path(line) 
+      self.outputFiles << OutputFile.new(base,ext,path,1)
+    }
+  end
+  
+   # Detect User Headers 
+   self.userHeader = self.script.scan(/TEXHEADER:(.*)/).to_s
+  
+  # Check for Errors
+  if terminals.empty?
+    raise GnuplotMateError.internalError('No terminal defined',1)
+  end
+  if terminals.size > 1
+    raise GnuplotMateError.internalError('Different terminals Defined',terminals[terminals.keys.last][:line])
+  end
+  
+  terminal = terminals[terminals.keys.first]
+
       
-  # Display the Output according the terminal
-    
-  case terminal
+  # Display the Output according the terminal 
+  case terminal[:name]
   when "epslatex"
     self.displayEpslatex(true)
   when "lua"
-    if terminalOption == "tikz"
+    if terminal[:option] == "tikz"
       self.displayLua
     else
-      puts "Error:Lua terminal needs tikz option"
-      return
+      raise GnuplotMateError.internalError('Lua terminal needs tikz option',terminal[:line])
     end
-  when "aqua"
+  when "aqua","x11"
     # Do nothing because aqua will allready be displayed
   when "pdf","pdfcairo"
     self.openOutputFileInPreview
   when "png","pngcairo"
     self.openOutputFileInPreview
   when "cairolatex"
-    case terminalOption
+    case terminal[:option]
     when "eps"
       self.displayEpslatex(true)
     when "pdf"
       self.displayEpslatex(false)
     else
-      puts "Error:cairolatex terminal needs eps or pdf option"
-      return
+      raise GnuplotMateError.internalError('cariolatex terminal needs eps or pdf option',terminal[:line])
     end
   else
-    puts "Error: No Supported Terminal"  
+    raise GnuplotMateError.internalError(terminal[:name] + ' not supported by this bundle',terminal[:line])  
   end
     
     
@@ -221,12 +232,17 @@ def displayEpslatex(isEps)
     
   if isEps
     # Convert eps to pdf
-    self.outputFiles.each do |f|
-      f = File.basename(f,File.extname(f))
-      puts %x{bash /usr/texbin/epstopdf #{f}.eps}
-    end
+    self.outputFiles.each { |outputFile|
+      IO.popen([epstopdf,outputFile[:base] + '.eps', :err=>[:child, :out]]) { |io|
+        output =  io.read
+        if !output.empty?
+          raise GnuplotMateError.epstopdfError(output,outputFile[:line]+1)      
+        end
+      }
+    }
   end
-     
+  
+   
   #Define Terminal Dependent Package String and Envirorment  
   packages = '\usepackage[]{graphicx} \usepackage[]{xcolor}' 
   previewEnv = 'picture'
@@ -240,16 +256,15 @@ def displayEpslatex(isEps)
   #Set Pfad in Gnuplot File Relative to Current ProjectPath
     
   if ENV["TM_PROJECT_DIRECTORY"]
-    self.outputFiles.each do |f|
+    self.outputFiles.each { |outputFile|
       path = Pathname.pwd
       path = path.relative_path_from(Pathname.new(ENV["TM_PROJECT_DIRECTORY"]))
-      fileName = File.basename(f,File.extname(f))
-      path = File.join(path,"#{fileName}")
+      path = File.join(path,outputFile[:base])
         
-      gnuplottex = File.read(File.expand_path("#{f}"))
+      gnuplottex = File.read(outputFile[:path])
       gnuplottex = gnuplottex.gsub(/\\includegraphics\{(.*)\b/,'\includegraphics{' +  path )
-        File.open(File.expand_path("#{f}"), 'w') {|fileToWrite| fileToWrite.write(gnuplottex) }  
-    end
+      File.open(outputFile[:path], 'w') {|fileToWrite| fileToWrite.write(gnuplottex) }  
+    }
   end
     
     
@@ -277,10 +292,10 @@ end
     latex.puts self.userHeader
     latex.puts '\begin{document}'
     latex.puts '\pagestyle{empty}'
-    self.outputFiles.each do |f|
-      f = File.basename(f,File.extname(f))
+    self.outputFiles.each {|f|
+      f = f[:base]
       latex.puts "\\include{#{f}} \\newpage" 
-    end
+    }
     latex.puts '\end{document}'
      
     #Run PDFLatex
@@ -294,11 +309,11 @@ end
     #Determine Page to Display
     currentLine =  Integer(ENV["TM_LINE_NUMBER"])
     page = 0
-    self.outputFilesLines.each do |no|
-      if currentLine >= no
+    self.outputFiles.each { |outputFile|
+      if currentLine >= outputFile[:line]
         page = page+1
       end
-    end
+    }
     if page == 0
       page = 1
     end
@@ -319,9 +334,9 @@ end
 
   def openOutputFileInPreview
     fileList = Array.new()
-    self.outputFiles.each do |f|
-      fileList << File.expand_path("#{f}")
-    end
+    self.outputFiles.each { |f|
+      fileList << f[:path]
+    }
     fileString = '"' + fileList.join('","') + '"'
     `osascript &>/dev/null \
     -e 'set theFileList to {#{fileString}} ' \
