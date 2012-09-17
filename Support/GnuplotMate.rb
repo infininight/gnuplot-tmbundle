@@ -38,6 +38,28 @@ class GnuplotMateError < StandardError
     GnuplotMateError.new(message,lineNumber,11,ENV['TM_FILEPATH'],"epstopdf") 
   end
   
+  
+  def self.latexError(latexError,script)
+    lineNo = 1
+    column = 0
+    
+    message = latexError[/!(.*)/,1].strip
+    argument = latexError[/<argument>(.*)/,1]
+    if argument
+      argument = argument.gsub(/\\strut\W*{}/,"").strip
+      script.each_line.with_index {|line,no|
+      
+        if line.index(argument)
+        
+          lineNo = no+1
+          column = line.index(argument)
+        end
+      }
+    end
+    
+    GnuplotMateError.new(message,lineNo,column,ENV['TM_FILEPATH'],"Latex") 
+  end
+  
   def showInTextmate
     TextMate.go_to(:line => self.lineNumber,:column => self.lineColumn+1)
     puts '^'
@@ -112,10 +134,10 @@ class GnuplotMate
   
   def self.open_data_files
     script=STDIN.read
-    script.scan(/^.*['"](.+)['"].*using/) do |y|
-    file = y[0]
-    puts %x{open -a TextMate.app #{file}}
-    end
+    script.scan(/^.*['"](.+)['"].*using/) { |y|
+      file = y[0]
+      puts %x{open -a TextMate.app #{file}} 
+    }
   end
 
   
@@ -150,119 +172,121 @@ def displayOutput
     }
     # Find Output
     line.scan(/\A\s*set output\W+['"](.*)['"]/) { |x|
-      ext = File.extname(x[0])
-      base = File.basename(x[0],ext)
-      path = File.expand_path(x[0]) 
-      self.outputFiles << OutputFile.new(base,ext,path,no)
-    }   
-  }
+    ext = File.extname(x[0])
+    base = File.basename(x[0],ext)
+    path = File.expand_path(x[0]) 
+    self.outputFiles << OutputFile.new(base,ext,path,no)
+  }   
+}
 
   
-  # Also look in the output.list for outputs
-  if File.file?("output.list")
-    File.readlines("output.list").each {|line|
-      ext = File.extname(line)
-      base = File.basename(line,ext)
-      path = File.expand_path(line) 
-      self.outputFiles << OutputFile.new(base,ext,path,1)
-    }
-  end
+# Also look in the output.list for outputs
+if File.file?("output.list")
+  File.readlines("output.list").each {|line|
+    ext = File.extname(line)
+    base = File.basename(line,ext)
+    path = File.expand_path(line) 
+    self.outputFiles << OutputFile.new(base,ext,path,1)
+  }
+end
   
-   # Detect User Headers 
-   self.userHeader = self.script.scan(/TEXHEADER:(.*)/).to_s
+# Detect User Headers 
+
+self.userHeader = self.script.scan(/TEXHEADER:(.*)/).join("\n")
   
-  # Check for Errors
-  if terminals.empty?
-    raise GnuplotMateError.internalError('No terminal defined',1)
-  end
-  if terminals.size > 1
-    raise GnuplotMateError.internalError('Different terminals Defined',terminals[terminals.keys.last][:line])
-  end
+
+# Check for Errors
+if terminals.empty?
+  raise GnuplotMateError.internalError('No terminal defined',1)
+end
+if terminals.size > 1
+  raise GnuplotMateError.internalError('Different terminals Defined',terminals[terminals.keys.last][:line])
+end
   
-  terminal = terminals[terminals.keys.first]
+terminal = terminals[terminals.keys.first]
 
       
-  # Display the Output according the terminal 
-  case terminal[:name]
-  when "epslatex"
-    self.displayEpslatex(true)
-  when "lua"
-    if terminal[:option] == "tikz"
-      self.displayLua
-    else
-      raise GnuplotMateError.internalError('Lua terminal needs tikz option',terminal[:line])
-    end
-  when "aqua","x11"
-    # Do nothing because aqua will allready be displayed
-  when "pdf","pdfcairo"
-    self.openOutputFileInPreview
-  when "png","pngcairo"
-    self.openOutputFileInPreview
-  when "cairolatex"
-    case terminal[:option]
-    when "eps"
-      self.displayEpslatex(true)
-    when "pdf"
-      self.displayEpslatex(false)
-    else
-      raise GnuplotMateError.internalError('cariolatex terminal needs eps or pdf option',terminal[:line])
-    end
+# Display the Output according the terminal 
+case terminal[:name]
+when "epslatex"
+  self.displayEpslatex(true)
+when "lua"
+  if terminal[:option] == "tikz"
+    self.displayLua
   else
-    raise GnuplotMateError.internalError(terminal[:name] + ' not supported by this bundle',terminal[:line])  
+    raise GnuplotMateError.internalError('Lua terminal needs tikz option',terminal[:line])
   end
+when "aqua","x11"
+  # Do nothing because aqua will allready be displayed
+when "pdf","pdfcairo"
+  self.openOutputFileInPreview
+when "png","pngcairo"
+  self.openOutputFileInPreview
+when "cairolatex"
+  case terminal[:option]
+  when "eps"
+    self.displayEpslatex(true)
+  when "pdf"
+    self.displayEpslatex(false)
+  else
+    raise GnuplotMateError.internalError('cariolatex terminal needs eps or pdf option',terminal[:line])
+  end
+else
+  raise GnuplotMateError.internalError(terminal[:name] + ' not supported by this bundle',terminal[:line])  
+end
     
     
 end 
 
 def displayLua
     
-  #Define Terminal Dependent Package String and Envirorment  
-  packages = '\usepackage[]{gnuplot-lua-tikz}'
-  previewEnv = 'tikzpicture'
+#Define Terminal Dependent Package String and Envirorment  
+packages = '\usepackage[]{gnuplot-lua-tikz}'
+previewEnv = 'tikzpicture'
     
-  #Run PDFLatex
-  self.runLatexOnTempFile(packages,previewEnv)
+#Run PDFLatex
+self.runLatexOnTempFile(packages,previewEnv)
         
-  #Show in Skim
-  self.findCurrentPageAndShowDocumentInSkim
+#Show in Skim
+self.findCurrentPageAndShowDocumentInSkim
    
 end
 
 def displayEpslatex(isEps)
     
-  if isEps
-    # Convert eps to pdf
-    self.outputFiles.each { |outputFile|
-      IO.popen([epstopdf,outputFile[:base] + '.eps', :err=>[:child, :out]]) { |io|
-        output =  io.read
-        if !output.empty?
-          raise GnuplotMateError.epstopdfError(output,outputFile[:line]+1)      
-        end
-      }
+if isEps
+  # Convert eps to pdf
+  self.outputFiles.each { |outputFile|
+    IO.popen([epstopdf,outputFile[:base] + '.eps', :err=>[:child, :out]]) { |io|
+      output =  io.read
+      if !output.empty?
+        raise GnuplotMateError.epstopdfError(output,outputFile[:line]+1)      
+      end
     }
-  end
+  }
+end
   
    
-  #Define Terminal Dependent Package String and Envirorment  
-  packages = '\usepackage[]{graphicx} \usepackage[]{xcolor}' 
-  previewEnv = 'picture'
+#Define Terminal Dependent Package String and Envirorment  
+packages = '\usepackage[]{graphicx} \usepackage[]{xcolor}' 
+previewEnv = 'picture'
      
-  #Run PDFLatex
-  self.runLatexOnTempFile(packages,previewEnv)
+#Run PDFLatex
+self.runLatexOnTempFile(packages,previewEnv)
      
-  #Show in Skim
-  self.findCurrentPageAndShowDocumentInSkim
+#Show in Skim
+self.findCurrentPageAndShowDocumentInSkim
                   
-  #Set Pfad in Gnuplot File Relative to Current ProjectPath
+#Set Pfad in Gnuplot File Relative to Current ProjectPath
     
-  if ENV["TM_PROJECT_DIRECTORY"]
-    self.outputFiles.each { |outputFile|
-      path = Pathname.pwd
-      path = path.relative_path_from(Pathname.new(ENV["TM_PROJECT_DIRECTORY"]))
-      path = File.join(path,outputFile[:base])
+if ENV["TM_PROJECT_DIRECTORY"]
+  self.outputFiles.each { |outputFile|
+    path = Pathname.pwd
+    path = path.relative_path_from(Pathname.new(ENV["TM_PROJECT_DIRECTORY"]))
+    path = File.join(path,outputFile[:base])
         
-      gnuplottex = File.read(outputFile[:path])
-      gnuplottex = gnuplottex.gsub(/\\includegraphics\{(.*)\b/,'\includegraphics{' +  path )
+    gnuplottex = File.read(outputFile[:path])
+    gnuplottex = gnuplottex.gsub(/\\includegraphics\{(.*)\b/,'\includegraphics{' +  path )
       File.open(outputFile[:path], 'w') {|fileToWrite| fileToWrite.write(gnuplottex) }  
     }
   end
@@ -271,84 +295,90 @@ def displayEpslatex(isEps)
     
 end
   
-  def run_plot_in_aquaterm(data)
-    # Delete term lines, change output lines to "term aqua" in order to show plots in Aquaterm
-    data.gsub!(/^\s+set term.*$/, "")
-    plotnum = 0;
-    data.gsub!(/^set output.*$/) { "set term aqua #{plotnum += 1}" }
-    puts data
-    execute data
-  end
+def run_plot_in_aquaterm(data)
+  # Delete term lines, change output lines to "term aqua" in order to show plots in Aquaterm
+  data.gsub!(/^\s+set term.*$/, "")
+  plotnum = 0;
+  data.gsub!(/^set output.*$/) { "set term aqua #{plotnum += 1}" }
+  puts data
+  execute data
+end
   
-  def runLatexOnTempFile(packages,previewEnv)
-     
-    latex = Tempfile.new("Plot_#{self.gpname}.tex")
-    latex.puts '\documentclass[fontsize=11pt]{scrartcl}'
-    latex.puts packages
-    latex.puts '\usepackage[active,tightpage]{preview}'
-    latex.puts "\\PreviewEnvironment{#{previewEnv}}"
-    latex.puts '\setlength\PreviewBorder{2mm}'
-    latex.puts File.read(self.texHeader)
-    latex.puts self.userHeader
-    latex.puts '\begin{document}'
-    latex.puts '\pagestyle{empty}'
-    self.outputFiles.each {|f|
-      f = f[:base]
-      latex.puts "\\include{#{f}} \\newpage" 
-    }
-    latex.puts '\end{document}'
-     
-    #Run PDFLatex
-    latex.flush
-    puts %x{/usr/texbin/pdflatex -interaction=batchmode #{latex.path}}
-    latex.close
-  end
+def runLatexOnTempFile(packages,previewEnv)
   
-  def findCurrentPageAndShowDocumentInSkim
-    
-    #Determine Page to Display
-    currentLine =  Integer(ENV["TM_LINE_NUMBER"])
-    page = 0
-    self.outputFiles.each { |outputFile|
-      if currentLine >= outputFile[:line]
-        page = page+1
-      end
-    }
-    if page == 0
-      page = 1
+  #latex = File.new("Plot_#{self.gpname}.tex",'w')   
+  latex = Tempfile.new("Plot_#{self.gpname}.tex")
+  latex.puts '\documentclass[fontsize=11pt]{scrartcl}'
+  latex.puts packages
+  latex.puts '\usepackage[active,tightpage]{preview}'
+  latex.puts "\\PreviewEnvironment{#{previewEnv}}"
+  latex.puts '\setlength\PreviewBorder{2mm}'
+  latex.puts File.read(self.texHeader)
+  latex.puts self.userHeader
+  latex.puts '\begin{document}'
+  latex.puts '\pagestyle{empty}'
+  self.outputFiles.each {|f|
+    f = f[:base]
+    latex.puts "\\include{#{f}} \\newpage" 
+  }
+  latex.puts '\end{document}'
+     
+  #Run PDFLatex
+  latex.close
+  IO.popen([pdflatex,latex.path, :err=>[:child, :out]]) { |io|
+    output =  io.read
+    if output[/!/]
+      raise GnuplotMateError.latexError(output,self.script)      
     end
+  }
+  latex.unlink
+end
+  
+def findCurrentPageAndShowDocumentInSkim
+    
+  #Determine Page to Display
+  currentLine =  Integer(ENV["TM_LINE_NUMBER"])
+  page = 0
+  self.outputFiles.each { |outputFile|
+    if currentLine >= outputFile[:line]
+      page = page+1
+    end
+  }
+  if page == 0
+    page = 1
+  end
          
-    # Open the PDFFile in Skim
-    pdfFileName = File.expand_path("Plot_#{self.gpname}.pdf")
-    `osascript &>/dev/null \
-    -e 'set theFile to POSIX file "#{pdfFileName}" ' \
-    -e 'tell application "Skim"' \
-    -e 'activate' \
-    -e 'set theDocument to open theFile' \
-    -e 'revert theDocument' \
-    -e 'set view settings of theDocument to {auto scales:true}' \
-    -e 'tell theDocument to go to page #{page}' \
-    -e 'end tell' &`
+  # Open the PDFFile in Skim
+  pdfFileName = File.expand_path("Plot_#{self.gpname}.pdf")
+  `osascript &>/dev/null \
+  -e 'set theFile to POSIX file "#{pdfFileName}" ' \
+  -e 'tell application "Skim"' \
+  -e 'activate' \
+  -e 'set theDocument to open theFile' \
+  -e 'revert theDocument' \
+  -e 'set view settings of theDocument to {auto scales:true}' \
+  -e 'tell theDocument to go to page #{page}' \
+  -e 'end tell' &`
 
-  end
+end
 
-  def openOutputFileInPreview
-    fileList = Array.new()
-    self.outputFiles.each { |f|
-      fileList << f[:path]
-    }
-    fileString = '"' + fileList.join('","') + '"'
-    `osascript &>/dev/null \
-    -e 'set theFileList to {#{fileString}} ' \
-    -e 'set thePosixFileList to {}' \
-    -e 'repeat with currentFile in theFileList' \
-    -e 'set currentPosixFile to POSIX file currentFile' \
-    -e 'copy currentPosixFile to the end of thePosixFileList' \
-    -e 'end repeat' \
-    -e 'tell application "Preview"' \
-    -e 'activate' \
-    -e 'open thePosixFileList' \
-    -e 'end tell' &`
-  end
+def openOutputFileInPreview
+  fileList = Array.new()
+  self.outputFiles.each { |f|
+    fileList << f[:path]
+  }
+  fileString = '"' + fileList.join('","') + '"'
+  `osascript &>/dev/null \
+  -e 'set theFileList to {#{fileString}} ' \
+  -e 'set thePosixFileList to {}' \
+  -e 'repeat with currentFile in theFileList' \
+  -e 'set currentPosixFile to POSIX file currentFile' \
+  -e 'copy currentPosixFile to the end of thePosixFileList' \
+  -e 'end repeat' \
+  -e 'tell application "Preview"' \
+  -e 'activate' \
+  -e 'open thePosixFileList' \
+  -e 'end tell' &`
+end
 
 end
