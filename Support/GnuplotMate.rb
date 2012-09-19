@@ -46,7 +46,7 @@ class GnuplotMateError < StandardError
     message = latexError[/!(.*)/,1].strip
     argument = latexError[/<argument>(.*)/,1]
     if argument
-      argument = argument.gsub(/\\strut\W*{}/,"").strip
+      argument = argument.gsub(/\\strut\W*\{\}/,"").strip
       script.each_line.with_index {|line,no|
       
         if line.index(argument)
@@ -279,16 +279,16 @@ self.findCurrentPageAndShowDocumentInSkim
                   
 #Set Pfad in Gnuplot File Relative to Current ProjectPath
     
-if ENV["TM_PROJECT_DIRECTORY"]
-  self.outputFiles.each { |outputFile|
-    path = Pathname.pwd
-    path = path.relative_path_from(Pathname.new(ENV["TM_PROJECT_DIRECTORY"]))
-    path = File.join(path,outputFile[:base])
+  if ENV["TM_PROJECT_DIRECTORY"]
+    self.outputFiles.each { |outputFile|
+      path = Pathname.pwd
+      path = path.relative_path_from(Pathname.new(ENV["TM_PROJECT_DIRECTORY"]))
+      path = File.join(path,outputFile[:base])
         
-    gnuplottex = File.read(outputFile[:path])
-    gnuplottex = gnuplottex.gsub(/\\includegraphics\{(.*)\b/,'\includegraphics{' +  path )
-      File.open(outputFile[:path], 'w') {|fileToWrite| fileToWrite.write(gnuplottex) }  
-    }
+      gnuplottex = File.read(outputFile[:path])
+      gnuplottex = gnuplottex.gsub(/\\includegraphics\{(.*)\b/,'\includegraphics{' +  path )
+        File.open(outputFile[:path], 'w') {|fileToWrite| fileToWrite.write(gnuplottex) }  
+      }
   end
     
     
