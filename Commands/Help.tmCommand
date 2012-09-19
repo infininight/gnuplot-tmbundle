@@ -10,45 +10,7 @@
 . "$TM_SUPPORT_PATH/lib/webpreview.sh"
 html_header "Gnuplot Bundle Help" "Gnuplot"
 
-"$TM_SUPPORT_PATH/lib/markdown_to_help.rb" &lt;&lt;'MARKDOWN'
-
-# Introduction
-
-The Gnuplot bundle is a set of snippets and completion commands designed to help you use [Gnuplot](http://www.gnuplot.info/), an incredibly powerful plotting utility.
-
-# Completion
-
-This bundle attempts to adapt to the many different commands available on different gnuplot builds by using your system's gnuplot binary for completion where possible. 
-
-This is expecially useful for the commands `set`, `set terminal` and `show`. If you can't remember whether your gnuplot binary supports 'pdf', just type:
-
-&lt;pre&gt;terminal⇥&lt;/pre&gt;
-then press `p`, and press escape to see the possible completion options.
-
-In some cases, gnuplot doesn't print possible options, in which case, completions are either hard coded, or not present. To see where completions are available, see the bundle contents.
-
-
-# Testing
-
-To quickly test if the gnuplot is correctly installed, you can use the 'test' snippet. Just type `test⇥`, to get some test code. Then run it with `⌘R`. 
-
-# Notes
-
-For best/any results, you'll need TextMate to be able to see a `gnuplot` binary. 
-
-To find out if it can, type: `which gnuplot` into an empty file, and press ⌃R. You should see something like the following:
-
-&lt;pre&gt;which gnuplot
-/usr/local/bin/gnuplot&lt;/pre&gt;
-
-If you don't, then make sure you have gnuplot installed. Typical instalation commands are:
- * fink install gnuplot-nox
- * port install gnuplot
- * installing the Octave Mac OS X build will give you a bundled version of Gnuplot.app. You can use the binary directly by looking in `Gnuplot.app/Contents/Resources/bin/gnuplot`
-
-For information on modifying Textmate's search path, see [this part of the manual](http://macromates.com/textmate/manual/shell_commands#search_path).
-
-MARKDOWN
+"$TM_SUPPORT_PATH/lib/markdown_to_help.rb" "$TM_BUNDLE_SUPPORT/../README.md"
 
 html_footer
 </string>
@@ -56,13 +18,21 @@ html_footer
 	<string>none</string>
 	<key>input</key>
 	<string>none</string>
+	<key>inputFormat</key>
+	<string>text</string>
 	<key>name</key>
 	<string>Help</string>
-	<key>output</key>
-	<string>showAsHTML</string>
+	<key>outputCaret</key>
+	<string>afterOutput</string>
+	<key>outputFormat</key>
+	<string>html</string>
+	<key>outputLocation</key>
+	<string>newWindow</string>
 	<key>scope</key>
 	<string>source.gnuplot</string>
 	<key>uuid</key>
 	<string>3AB3A528-82D0-4F68-86CA-59CC7F6DCFA9</string>
+	<key>version</key>
+	<integer>2</integer>
 </dict>
 </plist>
